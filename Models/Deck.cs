@@ -24,7 +24,7 @@ namespace CCGGame.Models
             Cards.Remove(card);
         }
 
-        public Card DrawCard()
+        public Card? DrawCard()
         {
             if (Cards.Count > 0)
             {

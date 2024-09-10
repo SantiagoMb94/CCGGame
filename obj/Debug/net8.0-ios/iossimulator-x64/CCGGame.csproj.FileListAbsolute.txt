@@ -311,3 +311,4 @@ D:\CCG\CCGGame\obj\Debug\net8.0-ios\iossimulator-x64\refint\CCGGame.dll
 D:\CCG\CCGGame\obj\Debug\net8.0-ios\iossimulator-x64\CCGGame.pdb
 D:\CCG\CCGGame\obj\Debug\net8.0-ios\iossimulator-x64\CCGGame.genruntimeconfig.cache
 D:\CCG\CCGGame\obj\Debug\net8.0-ios\iossimulator-x64\ref\CCGGame.dll
+D:\CCG\CCGGame\obj\Debug\net8.0-ios\iossimulator-x64\CCGGame.sourcelink.json

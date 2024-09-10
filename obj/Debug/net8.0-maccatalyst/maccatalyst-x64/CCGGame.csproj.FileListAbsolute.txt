@@ -299,3 +299,4 @@ D:\CCG\CCGGame\obj\Debug\net8.0-maccatalyst\maccatalyst-x64\refint\CCGGame.dll
 D:\CCG\CCGGame\obj\Debug\net8.0-maccatalyst\maccatalyst-x64\CCGGame.pdb
 D:\CCG\CCGGame\obj\Debug\net8.0-maccatalyst\maccatalyst-x64\CCGGame.genruntimeconfig.cache
 D:\CCG\CCGGame\obj\Debug\net8.0-maccatalyst\maccatalyst-x64\ref\CCGGame.dll
+D:\CCG\CCGGame\obj\Debug\net8.0-maccatalyst\maccatalyst-x64\CCGGame.sourcelink.json

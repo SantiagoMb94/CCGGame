@@ -1,21 +1,21 @@
 {
   "format": 1,
   "restore": {
-    "D:\\CCG\\CCGGame\\CCGGame.csproj": {}
+    "E:\\BackUP\\Repo\\CCGGame\\CCGGame.csproj": {}
   },
   "projects": {
-    "D:\\CCG\\CCGGame\\CCGGame.csproj": {
+    "E:\\BackUP\\Repo\\CCGGame\\CCGGame.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\CCG\\CCGGame\\CCGGame.csproj",
+        "projectUniqueName": "E:\\BackUP\\Repo\\CCGGame\\CCGGame.csproj",
         "projectName": "CCGGame",
-        "projectPath": "D:\\CCG\\CCGGame\\CCGGame.csproj",
-        "packagesPath": "C:\\Users\\santi\\.nuget\\packages\\",
-        "outputPath": "D:\\CCG\\CCGGame\\obj\\",
+        "projectPath": "E:\\BackUP\\Repo\\CCGGame\\CCGGame.csproj",
+        "packagesPath": "C:\\Users\\Kaguya\\.nuget\\packages\\",
+        "outputPath": "E:\\BackUP\\Repo\\CCGGame\\obj\\",
         "projectStyle": "PackageReference",
         "crossTargeting": true,
         "configFilePaths": [
-          "C:\\Users\\santi\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Kaguya\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0-android",

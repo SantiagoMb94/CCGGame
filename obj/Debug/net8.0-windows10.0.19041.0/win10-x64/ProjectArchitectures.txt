@@ -1,1 +1,1 @@
-D:\CCG\CCGGame\CCGGame.csproj;x64
+E:\BackUP\Repo\CCGGame\CCGGame.csproj;x64

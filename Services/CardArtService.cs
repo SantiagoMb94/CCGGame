@@ -7,7 +7,7 @@ namespace CCGGame.Services
     /// Servicio para obtener imágenes temáticas de cartas (locales).
     /// Devuelve rutas internas en Resources/Images para evitar dependencias externas.
     /// </summary>
-    public class CardArtService
+    public class CardArtService : ICardArtService
     {
         private readonly ConcurrentDictionary<string, string> _cache = new();
 

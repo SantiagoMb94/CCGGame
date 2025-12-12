@@ -19,14 +19,14 @@ public static class MauiProgram
 			});
 
 		// Registrar servicios
-		builder.Services.AddSingleton<CardArtService>();
-		builder.Services.AddSingleton<CardDataService>();
-		builder.Services.AddSingleton<DeckService>();
-		builder.Services.AddTransient<DuelService>(sp => 
-		{
-			var deckService = sp.GetRequiredService<DeckService>();
-			return new DuelService(deckService);
-		});
+        builder.Services.AddSingleton<ICardArtService, CardArtService>();
+        builder.Services.AddSingleton<ICardDataService, CardDataService>();
+        builder.Services.AddSingleton<IDeckService, DeckService>();
+        builder.Services.AddTransient<IDuelService>(sp =>
+        {
+            var deckService = sp.GetRequiredService<IDeckService>();
+            return new DuelService(deckService);
+        });
 
 		// Registrar ViewModels
 		builder.Services.AddTransient<MainMenuViewModel>(sp =>
@@ -35,17 +35,17 @@ public static class MauiProgram
 		});
 		builder.Services.AddTransient<DeckBuilderViewModel>(sp =>
 		{
-			var cardDataService = sp.GetRequiredService<CardDataService>();
-			var deckService = sp.GetRequiredService<DeckService>();
-			var artService = sp.GetRequiredService<CardArtService>();
+            var cardDataService = sp.GetRequiredService<ICardDataService>();
+            var deckService = sp.GetRequiredService<IDeckService>();
+            var artService = sp.GetRequiredService<ICardArtService>();
 			return new DeckBuilderViewModel(cardDataService, deckService, artService);
 		});
 		builder.Services.AddTransient<DuelViewModel>(sp =>
 		{
-			var duelService = sp.GetRequiredService<DuelService>();
-			var deckService = sp.GetRequiredService<DeckService>();
-			var cardDataService = sp.GetRequiredService<CardDataService>();
-			var artService = sp.GetRequiredService<CardArtService>();
+            var duelService = sp.GetRequiredService<IDuelService>();
+            var deckService = sp.GetRequiredService<IDeckService>();
+            var cardDataService = sp.GetRequiredService<ICardDataService>();
+            var artService = sp.GetRequiredService<ICardArtService>();
 			return new DuelViewModel(duelService, deckService, cardDataService, artService);
 		});
 

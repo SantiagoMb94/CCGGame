@@ -11,10 +11,10 @@ namespace CCGGame.ViewModels
 {
     public class DuelViewModel : INotifyPropertyChanged
     {
-        private readonly DuelService _duelService;
-        private readonly DeckService _deckService;
-        private readonly CardDataService _cardDataService;
-        private readonly CardArtService _cardArtService;
+        private readonly IDuelService _duelService;
+        private readonly IDeckService _deckService;
+        private readonly ICardDataService _cardDataService;
+        private readonly ICardArtService _cardArtService;
         private Player? _activePlayer;
         private Player? _opponent;
         private Card? _selectedHandCard;
@@ -28,7 +28,7 @@ namespace CCGGame.ViewModels
         private bool _isGameOver;
         private string _winnerMessage = string.Empty;
 
-        public DuelViewModel(DuelService duelService, DeckService deckService, CardDataService cardDataService, CardArtService cardArtService)
+        public DuelViewModel(IDuelService duelService, IDeckService deckService, ICardDataService cardDataService, ICardArtService cardArtService)
         {
             _duelService = duelService;
             _deckService = deckService;
@@ -388,6 +388,7 @@ namespace CCGGame.ViewModels
             Player1Hand.Clear();
             foreach (var card in Player1.Hand)
             {
+                card.IsPlayable = ActivePlayer != null && ActivePlayer == Player1 && ActivePlayer.Energy >= card.Cost;
                 EnsureImage(card);
                 Player1Hand.Add(card);
             }
@@ -395,6 +396,7 @@ namespace CCGGame.ViewModels
             Player2Hand.Clear();
             foreach (var card in Player2.Hand)
             {
+                card.IsPlayable = false;
                 EnsureImage(card);
                 Player2Hand.Add(card);
             }

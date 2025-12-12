@@ -10,6 +10,7 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
                 <ResourceDictionary Source="Resources/Styles/CardStyles.xaml" />
+                <ResourceDictionary Source="Resources/Styles/SharedStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <!-- Converters globales -->
             <conv:TypeToIconConverter x:Key="TypeToIconConverter" />

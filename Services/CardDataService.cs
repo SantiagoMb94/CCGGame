@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace CCGGame.Services
 {
-    public class CardDataService
+    public class CardDataService : ICardDataService
     {
         private List<Card> _allCards;
 

@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    xmlns:conv="clr-namespace:CCGGame.Converters"
+                    xmlns:models="clr-namespace:CCGGame.Models">
+
+    <conv:HealthToProgressConverter x:Key="HealthToProgressConverter" />
+    <conv:ManaToProgressConverter x:Key="ManaToProgressConverter" />
+    <conv:CrystalFillConverter x:Key="CrystalFillConverter" />
+    <conv:PlayableToColorConverter x:Key="PlayableToColorConverter" />
+
+    <DataTemplate x:Key="FieldCardTemplate" x:DataType="models:Card">
+        <Frame HasShadow="True"
+               CornerRadius="18"
+               Padding="8"
+               Margin="6"
+               WidthRequest="150"
+               HeightRequest="190"
+               BackgroundColor="#1f1a2b"
+               BorderColor="#a27bff">
+            <Frame.GestureRecognizers>
+                <TapGestureRecognizer
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AttackCommand}"
+                    CommandParameter="{Binding .}" />
+            </Frame.GestureRecognizers>
+            <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" ColumnDefinitions="Auto,*">
+                <Frame Grid.Row="0" Grid.Column="0" Padding="6" CornerRadius="14" BackgroundColor="#1f8be6" HasShadow="False">
+                    <Label Text="{Binding Cost}" FontSize="15" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+                </Frame>
+                <Label Grid.Row="0" Grid.Column="1"
+                       Text="{Binding CardType, Converter={StaticResource TypeToIconConverter}}"
+                       FontSize="18" TextColor="White" HorizontalOptions="End" Padding="4"/>
+                <Image Grid.Row="1" Grid.ColumnSpan="2"
+                       Source="{Binding ImageUrl}"
+                       Aspect="AspectFill"
+                       HeightRequest="80"/>
+                <Label Grid.Row="2" Grid.ColumnSpan="2"
+                       Text="{Binding Name}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="White" />
+                <Label Grid.Row="3" Grid.ColumnSpan="2"
+                       Text="{Binding KeywordsDisplay}"
+                       FontSize="11"
+                       TextColor="Aqua"
+                       HorizontalOptions="Center"
+                       MaxLines="1"
+                       LineBreakMode="TailTruncation"/>
+                <Grid Grid.Row="4" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto">
+                    <Frame Padding="6,2" BackgroundColor="#8b1c1c" CornerRadius="8">
+                        <Label Text="{Binding Attack}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                    </Frame>
+                    <Frame Grid.Column="2" Padding="6,2" BackgroundColor="#1c3f8b" CornerRadius="8" HorizontalOptions="End">
+                        <Label Text="{Binding Defense}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                    </Frame>
+                </Grid>
+            </Grid>
+        </Frame>
+    </DataTemplate>
+
+    <DataTemplate x:Key="HandCardTemplate" x:DataType="models:Card">
+        <Frame HasShadow="True"
+               CornerRadius="18"
+               Padding="10"
+               Margin="6"
+               WidthRequest="150"
+               HeightRequest="200"
+               BackgroundColor="#1c1829"
+               BorderColor="{Binding IsPlayable, Converter={StaticResource PlayableToColorConverter}}">
+            <Frame.GestureRecognizers>
+                <TapGestureRecognizer
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.PlayCardCommand}"
+                    CommandParameter="{Binding .}" />
+            </Frame.GestureRecognizers>
+            <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" ColumnDefinitions="Auto,*">
+                <Frame Grid.Row="0" Grid.Column="0" Padding="6" CornerRadius="14" BackgroundColor="#1f8be6" HasShadow="False">
+                    <Label Text="{Binding Cost}" FontSize="15" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+                </Frame>
+                <Label Grid.Row="0" Grid.Column="1"
+                       Text="{Binding CardType, Converter={StaticResource TypeToIconConverter}}"
+                       FontSize="18" TextColor="White" HorizontalOptions="End" Padding="4"/>
+                <Image Grid.Row="1" Grid.ColumnSpan="2"
+                       Source="{Binding ImageUrl}"
+                       Aspect="AspectFill"
+                       HeightRequest="70"/>
+                <Label Grid.Row="2" Grid.ColumnSpan="2"
+                       Text="{Binding Name}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="White" />
+                <Label Grid.Row="3" Grid.ColumnSpan="2"
+                       Text="{Binding Description}"
+                       FontSize="12"
+                       TextColor="#dcdcdc"
+                       HorizontalOptions="Center"
+                       LineBreakMode="WordWrap"
+                       MaxLines="3"/>
+                <Grid Grid.Row="4" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto">
+                    <Frame Padding="6,2" BackgroundColor="#8b1c1c" CornerRadius="8">
+                        <Label Text="{Binding Attack}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                    </Frame>
+                    <Frame Grid.Column="2" Padding="6,2" BackgroundColor="#1c3f8b" CornerRadius="8" HorizontalOptions="End">
+                        <Label Text="{Binding Defense}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                    </Frame>
+                </Grid>
+                <Button Grid.Row="5" Grid.ColumnSpan="2"
+                        Text="Jugar"
+                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.PlayCardCommand}"
+                        CommandParameter="{Binding .}"
+                        BackgroundColor="#4b7bff"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        FontSize="12"
+                        Padding="6,4"/>
+            </Grid>
+        </Frame>
+    </DataTemplate>
+
+</ResourceDictionary>
+<?xml version="1.0" encoding="utf-8" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+                    xmlns:conv="clr-namespace:CCGGame.Converters"
+                    xmlns:models="clr-namespace:CCGGame.Models">
+
+    <!-- Converters compartidos -->
+    <conv:HealthToProgressConverter x:Key="HealthToProgressConverter" />
+    <conv:ManaToProgressConverter x:Key="ManaToProgressConverter" />
+    <conv:CrystalFillConverter x:Key="CrystalFillConverter" />
+    <conv:PlayableToColorConverter x:Key="PlayableToColorConverter" />
+
+    <!-- DataTemplate para cartas en campo -->
+    <DataTemplate x:Key="FieldCardTemplate" x:DataType="models:Card">
+        <Frame HasShadow="True"
+               CornerRadius="18"
+               Padding="8"
+               Margin="6"
+               WidthRequest="150"
+               HeightRequest="190"
+               BackgroundColor="#1f1a2b"
+               BorderColor="#a27bff">
+            <Frame.GestureRecognizers>
+                <TapGestureRecognizer
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AttackCommand}"
+                    CommandParameter="{Binding .}" />
+            </Frame.GestureRecognizers>
+            <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" ColumnDefinitions="Auto,*">
+                <Frame Grid.Row="0" Grid.Column="0" Padding="6" CornerRadius="14" BackgroundColor="#1f8be6" HasShadow="False">
+                    <Label Text="{Binding Cost}" FontSize="15" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+                </Frame>
+                <Label Grid.Row="0" Grid.Column="1"
+                       Text="{Binding CardType, Converter={StaticResource TypeToIconConverter}}"
+                       FontSize="18" TextColor="White" HorizontalOptions="End" Padding="4"/>
+                <Image Grid.Row="1" Grid.ColumnSpan="2"
+                       Source="{Binding ImageUrl}"
+                       Aspect="AspectFill"
+                       HeightRequest="80"/>
+                <Label Grid.Row="2" Grid.ColumnSpan="2"
+                       Text="{Binding Name}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="White" />
+                <Label Grid.Row="3" Grid.ColumnSpan="2"
+                       Text="{Binding KeywordsDisplay}"
+                       FontSize="11"
+                       TextColor="Aqua"
+                       HorizontalOptions="Center"
+                       MaxLines="1"
+                       LineBreakMode="TailTruncation"/>
+                <Grid Grid.Row="4" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto">
+                    <Frame Padding="6,2" BackgroundColor="#8b1c1c" CornerRadius="8">
+                        <Label Text="{Binding Attack}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                    </Frame>
+                    <Frame Grid.Column="2" Padding="6,2" BackgroundColor="#1c3f8b" CornerRadius="8" HorizontalOptions="End">
+                        <Label Text="{Binding Defense}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                    </Frame>
+                </Grid>
+            </Grid>
+        </Frame>
+    </DataTemplate>
+
+    <!-- DataTemplate para cartas en mano -->
+    <DataTemplate x:Key="HandCardTemplate" x:DataType="models:Card">
+        <Frame HasShadow="True"
+               CornerRadius="18"
+               Padding="10"
+               Margin="6"
+               WidthRequest="150"
+               HeightRequest="200"
+               BackgroundColor="#1c1829"
+               BorderColor="{Binding IsPlayable, Converter={StaticResource PlayableToColorConverter}}">
+            <Frame.GestureRecognizers>
+                <TapGestureRecognizer
+                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.PlayCardCommand}"
+                    CommandParameter="{Binding .}" />
+            </Frame.GestureRecognizers>
+            <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" ColumnDefinitions="Auto,*">
+                <Frame Grid.Row="0" Grid.Column="0" Padding="6" CornerRadius="14" BackgroundColor="#1f8be6" HasShadow="False">
+                    <Label Text="{Binding Cost}" FontSize="15" FontAttributes="Bold" TextColor="White" HorizontalOptions="Center"/>
+                </Frame>
+                <Label Grid.Row="0" Grid.Column="1"
+                       Text="{Binding CardType, Converter={StaticResource TypeToIconConverter}}"
+                       FontSize="18" TextColor="White" HorizontalOptions="End" Padding="4"/>
+                <Image Grid.Row="1" Grid.ColumnSpan="2"
+                       Source="{Binding ImageUrl}"
+                       Aspect="AspectFill"
+                       HeightRequest="70"/>
+                <Label Grid.Row="2" Grid.ColumnSpan="2"
+                       Text="{Binding Name}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       HorizontalOptions="Center"
+                       TextColor="White" />
+                <Label Grid.Row="3" Grid.ColumnSpan="2"
+                       Text="{Binding Description}"
+                       FontSize="12"
+                       TextColor="#dcdcdc"
+                       HorizontalOptions="Center"
+                       LineBreakMode="WordWrap"
+                       MaxLines="3"/>
+                <Grid Grid.Row="4" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*,Auto">
+                    <Frame Padding="6,2" BackgroundColor="#8b1c1c" CornerRadius="8">
+                        <Label Text="{Binding Attack}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                    </Frame>
+                    <Frame Grid.Column="2" Padding="6,2" BackgroundColor="#1c3f8b" CornerRadius="8" HorizontalOptions="End">
+                        <Label Text="{Binding Defense}" FontSize="13" FontAttributes="Bold" TextColor="White"/>
+                    </Frame>
+                </Grid>
+                <Button Grid.Row="5" Grid.ColumnSpan="2"
+                        Text="Jugar"
+                        Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.PlayCardCommand}"
+                        CommandParameter="{Binding .}"
+                        BackgroundColor="#4b7bff"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        CornerRadius="10"
+                        FontSize="12"
+                        Padding="6,4"/>
+            </Grid>
+        </Frame>
+    </DataTemplate>
+
+</ResourceDictionary>

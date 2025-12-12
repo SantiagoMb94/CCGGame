@@ -9,11 +9,13 @@ namespace CCGGame.Models
         public Deck PlayerDeck { get; set; }
         public List<Card> Hand { get; set; }
         public List<Card> Field { get; set; } // Cartas en el campo de batalla
+        public List<Card> Graveyard { get; set; }
         public int Health { get; set; }
         public int MaxHealth { get; set; }
         public int Energy { get; set; }
         public int MaxEnergy { get; set; }
         public bool IsActive { get; set; }
+        public int FatigueCounter { get; set; }
 
         public Player(string name, Deck deck)
         {
@@ -21,11 +23,13 @@ namespace CCGGame.Models
             PlayerDeck = deck;
             Hand = new List<Card>();
             Field = new List<Card>();
+            Graveyard = new List<Card>();
             MaxHealth = 30;
             Health = MaxHealth;
             MaxEnergy = 1;
             Energy = MaxEnergy;
             IsActive = false;
+            FatigueCounter = 0;
         }
 
         public void TakeDamage(int damage)
@@ -49,6 +53,12 @@ namespace CCGGame.Models
                 {
                     Hand.Add(card);
                 }
+            }
+            else if (PlayerDeck.Cards.Count == 0)
+            {
+                // Fatiga: cada robo sin cartas hace daño creciente
+                FatigueCounter++;
+                TakeDamage(FatigueCounter);
             }
         }
 

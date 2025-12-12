@@ -5,9 +5,9 @@ using System.Linq;
 
 namespace CCGGame.Services
 {
-    public class DuelService
+    public class DuelService : IDuelService
     {
-        private readonly DeckService _deckService;
+        private readonly IDeckService _deckService;
         private readonly Random _rng = new();
         private readonly Dictionary<Card, int> _attacksUsed = new();
         private readonly HashSet<Card> _summoningSickness = new();
@@ -17,10 +17,13 @@ namespace CCGGame.Services
         public event EventHandler<string>? GameEvent;
         public event EventHandler<Player>? PlayerDefeated;
 
-        public DuelService(DeckService deckService)
+        public DuelService(IDeckService deckService)
         {
             _deckService = deckService;
         }
+
+        public DuelPhase Phase { get; private set; } = DuelPhase.NotStarted;
+        public int TurnNumber { get; private set; } = 0;
 
         public void StartDuel(Player player1, Player player2)
         {
@@ -64,8 +67,11 @@ namespace CCGGame.Services
             player1.IsActive = true;
             player2.IsActive = false;
 
+            Phase = DuelPhase.TurnStart;
+            TurnNumber = 1;
             RefreshAttacks(player1);
             OnGameEvent($"¡El duelo ha comenzado! {player1.Name} vs {player2.Name}");
+            Phase = DuelPhase.Main;
         }
 
         public bool PlayCard(Player activePlayer, Card card, Player opponent)
@@ -212,11 +218,16 @@ namespace CCGGame.Services
             if (currentPlayer == null || nextPlayer == null)
                 return;
 
+            Phase = DuelPhase.TurnEnd;
             currentPlayer.EndTurn();
+            Phase = DuelPhase.TurnEnd;
+
             nextPlayer.StartTurn();
             RefreshAttacks(nextPlayer);
+            TurnNumber++;
 
             OnGameEvent($"Turno de {currentPlayer.Name} terminado. Ahora es el turno de {nextPlayer.Name}");
+            Phase = DuelPhase.Main;
         }
 
         public bool CheckGameOver(Player player1, Player player2)
@@ -269,6 +280,7 @@ namespace CCGGame.Services
             if (owner.Field.Contains(deadCard))
             {
                 owner.Field.Remove(deadCard);
+                owner.Graveyard.Add(deadCard);
             }
 
             _attacksUsed.Remove(deadCard);

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace CCGGame.Services
 {
-    public class DeckService
+    public class DeckService : IDeckService
     {
         private const int MinDeckSize = 30;
         private const int MaxDeckSize = 40;
@@ -77,7 +77,7 @@ namespace CCGGame.Services
             return errors;
         }
 
-        public Deck CreateStarterDeck(CardDataService cardService)
+        public Deck CreateStarterDeck(ICardDataService cardService)
         {
             var deck = new Deck("Mazo Inicial");
             var rng = new Random();

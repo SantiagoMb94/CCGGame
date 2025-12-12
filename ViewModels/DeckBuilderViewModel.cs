@@ -13,16 +13,16 @@ namespace CCGGame.ViewModels
 {
     public class DeckBuilderViewModel : INotifyPropertyChanged
     {
-        private readonly CardDataService _cardDataService;
-        private readonly DeckService _deckService;
-        private readonly CardArtService _cardArtService;
+        private readonly ICardDataService _cardDataService;
+        private readonly IDeckService _deckService;
+        private readonly ICardArtService _cardArtService;
         private string _searchText = string.Empty;
         private string _selectedCardType = "All";
         private string _selectedRarity = "All";
         private Card? _selectedCard;
         private string _saveStatus = string.Empty;
 
-        public DeckBuilderViewModel(CardDataService cardDataService, DeckService deckService, CardArtService cardArtService)
+        public DeckBuilderViewModel(ICardDataService cardDataService, IDeckService deckService, ICardArtService cardArtService)
         {
             _cardDataService = cardDataService;
             _deckService = deckService;

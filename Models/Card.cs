@@ -48,6 +48,11 @@ namespace CCGGame.Models
         /// </summary>
         public List<CardEffect> Effects { get; set; }
 
+        /// <summary>
+        /// Indicador de jugabilidad según el maná actual (lo setea el ViewModel).
+        /// </summary>
+        public bool IsPlayable { get; set; }
+
         public Card()
         {
             Name = string.Empty;
@@ -60,6 +65,7 @@ namespace CCGGame.Models
             Defense = 0;
             Keywords = new List<string>();
             Effects = new List<CardEffect>();
+            IsPlayable = false;
         }
 
         public Card(int id, string name, string description, int attack, int defense, int cost, string cardType, string rarity = "Common", IEnumerable<string>? keywords = null, IEnumerable<CardEffect>? effects = null)
@@ -75,6 +81,7 @@ namespace CCGGame.Models
             ImageUrl = string.Empty;
             Keywords = keywords?.ToList() ?? new List<string>();
             Effects = effects?.ToList() ?? new List<CardEffect>();
+            IsPlayable = false;
         }
 
         public bool CanPlay(int availableEnergy)

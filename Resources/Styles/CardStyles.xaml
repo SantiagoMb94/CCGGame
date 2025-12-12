@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Estilo para cartas comunes -->
+    <Style x:Key="CommonCardFrame" TargetType="Frame">
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="BackgroundColor" Value="#F5F5F5" />
+        <Setter Property="BorderColor" Value="#808080" />
+        <Setter Property="BorderWidth" Value="2" />
+    </Style>
+
+    <!-- Estilo para cartas raras -->
+    <Style x:Key="RareCardFrame" TargetType="Frame">
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="BackgroundColor" Value="#E6F2FF" />
+        <Setter Property="BorderColor" Value="#0066CC" />
+        <Setter Property="BorderWidth" Value="2" />
+    </Style>
+
+    <!-- Estilo para cartas épicas -->
+    <Style x:Key="EpicCardFrame" TargetType="Frame">
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="BackgroundColor" Value="#F0E6FF" />
+        <Setter Property="BorderColor" Value="#9933CC" />
+        <Setter Property="BorderWidth" Value="2" />
+    </Style>
+
+    <!-- Estilo para cartas legendarias -->
+    <Style x:Key="LegendaryCardFrame" TargetType="Frame">
+        <Setter Property="HasShadow" Value="True" />
+        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="BackgroundColor" Value="#FFF4E6" />
+        <Setter Property="BorderColor" Value="#FF9900" />
+        <Setter Property="BorderWidth" Value="3" />
+    </Style>
+
+    <!-- Estilo para botones de acción de cartas -->
+    <Style x:Key="CardActionButton" TargetType="Button">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Padding" Value="10,5" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="MinimumHeightRequest" Value="35" />
+        <Setter Property="MinimumWidthRequest" Value="60" />
+    </Style>
+
+    <!-- Estilo para etiquetas de estadísticas de cartas -->
+    <Style x:Key="CardStatLabel" TargetType="Label">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontAttributes" Value="Bold" />
+    </Style>
+
+    <!-- Estilo para nombre de carta -->
+    <Style x:Key="CardNameLabel" TargetType="Label">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontAttributes" Value="Bold" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Black}, Dark={StaticResource White}}" />
+    </Style>
+
+    <!-- Estilo para descripción de carta -->
+    <Style x:Key="CardDescriptionLabel" TargetType="Label">
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray300}}" />
+        <Setter Property="LineBreakMode" Value="WordWrap" />
+    </Style>
+
+</ResourceDictionary>
+

@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Logging;
+using CCGGame.Services;
+using CCGGame.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace CCGGame;
 
@@ -14,6 +17,39 @@ public static class MauiProgram
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
 				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
+
+		// Registrar servicios
+		builder.Services.AddSingleton<CardDataService>();
+		builder.Services.AddSingleton<DeckService>();
+		builder.Services.AddTransient<DuelService>(sp => 
+		{
+			var deckService = sp.GetRequiredService<DeckService>();
+			return new DuelService(deckService);
+		});
+
+		// Registrar ViewModels
+		builder.Services.AddTransient<MainMenuViewModel>(sp =>
+		{
+			return new MainMenuViewModel(sp);
+		});
+		builder.Services.AddTransient<DeckBuilderViewModel>(sp =>
+		{
+			var cardDataService = sp.GetRequiredService<CardDataService>();
+			var deckService = sp.GetRequiredService<DeckService>();
+			return new DeckBuilderViewModel(cardDataService, deckService);
+		});
+		builder.Services.AddTransient<DuelViewModel>(sp =>
+		{
+			var duelService = sp.GetRequiredService<DuelService>();
+			var deckService = sp.GetRequiredService<DeckService>();
+			var cardDataService = sp.GetRequiredService<CardDataService>();
+			return new DuelViewModel(duelService, deckService, cardDataService);
+		});
+
+		// Registrar Views
+		builder.Services.AddTransient<MainPage>();
+		builder.Services.AddTransient<Views.DeckBuilderPage>();
+		builder.Services.AddTransient<Views.DuelPage>();
 
 #if DEBUG
 		builder.Logging.AddDebug();

@@ -1,24 +1,28 @@
-﻿namespace CCGGame;
+using CCGGame.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace CCGGame;
 
 public partial class MainPage : ContentPage
 {
-	int count = 0;
-
-	public MainPage()
+	public MainPage(MainMenuViewModel? viewModel = null)
 	{
 		InitializeComponent();
-	}
-
-	private void OnCounterClicked(object sender, EventArgs e)
-	{
-		count++;
-
-		if (count == 1)
-			CounterBtn.Text = $"Clicked {count} time";
-		else
-			CounterBtn.Text = $"Clicked {count} times";
-
-		SemanticScreenReader.Announce(CounterBtn.Text);
+		
+		// Obtener el ViewModel del contenedor de servicios si no se proporciona
+		if (viewModel == null)
+		{
+			var serviceProvider = Application.Current?.Handler?.MauiContext?.Services;
+			if (serviceProvider != null)
+			{
+				viewModel = serviceProvider.GetService<MainMenuViewModel>();
+			}
+		}
+		
+		if (viewModel != null)
+		{
+			BindingContext = viewModel;
+		}
 	}
 }
 

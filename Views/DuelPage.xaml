@@ -97,13 +97,11 @@
                                     SelectionMode="Single"
                                     SelectedItem="{Binding SelectedTargetCard, Mode=TwoWay}"
                                     HorizontalScrollBarVisibility="Always"
-                                    HeightRequest="190">
+                                    HeightRequest="190"
+                                    ItemTemplate="{StaticResource FieldCardTemplate}">
                         <CollectionView.ItemsLayout>
                             <LinearItemsLayout Orientation="Horizontal" ItemSpacing="4"/>
                         </CollectionView.ItemsLayout>
-                        <CollectionView.ItemTemplate>
-                            <StaticResource ResourceKey="FieldCardTemplate" />
-                        </CollectionView.ItemTemplate>
                     </CollectionView>
                     </Frame>
 
@@ -116,13 +114,11 @@
                                     SelectionMode="Single"
                                     SelectedItem="{Binding SelectedFieldCard, Mode=TwoWay}"
                                     HorizontalScrollBarVisibility="Always"
-                                    HeightRequest="190">
+                                    HeightRequest="190"
+                                    ItemTemplate="{StaticResource FieldCardTemplate}">
                         <CollectionView.ItemsLayout>
                             <LinearItemsLayout Orientation="Horizontal" ItemSpacing="4"/>
                         </CollectionView.ItemsLayout>
-                        <CollectionView.ItemTemplate>
-                            <StaticResource ResourceKey="FieldCardTemplate" />
-                        </CollectionView.ItemTemplate>
                     </CollectionView>
                     </Frame>
 
@@ -140,13 +136,11 @@
                             SelectionMode="Single"
                             SelectedItem="{Binding SelectedHandCard, Mode=TwoWay}"
                             HeightRequest="210"
-                            Margin="0,4,0,0">
+                            Margin="0,4,0,0"
+                            ItemTemplate="{StaticResource HandCardTemplate}">
                 <CollectionView.ItemsLayout>
                     <LinearItemsLayout Orientation="Horizontal" ItemSpacing="2"/>
                 </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <StaticResource ResourceKey="HandCardTemplate" />
-                </CollectionView.ItemTemplate>
             </CollectionView>
         </Grid>
 

@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows.Input;
 using CCGGame.Models;
 using CCGGame.Services;
@@ -16,6 +18,7 @@ namespace CCGGame.ViewModels
         private string _selectedCardType = "All";
         private string _selectedRarity = "All";
         private Card? _selectedCard;
+        private string _saveStatus = string.Empty;
 
         public DeckBuilderViewModel(CardDataService cardDataService, DeckService deckService)
         {
@@ -37,6 +40,7 @@ namespace CCGGame.ViewModels
             SaveDeckCommand = new Command(SaveDeck, CanSaveDeck);
             ClearDeckCommand = new Command(ClearDeck);
             CreateStarterDeckCommand = new Command(CreateStarterDeck);
+            AutoFillDeckCommand = new Command(AutoFillDeck);
         }
 
         public ObservableCollection<Card> AvailableCards { get; set; }
@@ -99,6 +103,18 @@ namespace CCGGame.ViewModels
         public string DeckStatus => $"{DeckCount}/40 cartas";
         public bool IsDeckValid => _deckService.ValidateDeck(PlayerDeck);
         public string ValidationMessage => IsDeckValid ? "Mazo válido" : string.Join(", ", _deckService.GetDeckValidationErrors(PlayerDeck));
+        public string SaveStatus
+        {
+            get => _saveStatus;
+            set
+            {
+                if (_saveStatus != value)
+                {
+                    _saveStatus = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
 
         public ICommand AddCardCommand { get; }
         public ICommand RemoveCardCommand { get; }
@@ -108,6 +124,7 @@ namespace CCGGame.ViewModels
         public ICommand SaveDeckCommand { get; }
         public ICommand ClearDeckCommand { get; }
         public ICommand CreateStarterDeckCommand { get; }
+        public ICommand AutoFillDeckCommand { get; }
 
         private void LoadCards()
         {
@@ -141,6 +158,7 @@ namespace CCGGame.ViewModels
                 LoadDeckCards();
                 ((Command)AddCardCommand).ChangeCanExecute();
                 ((Command)SaveDeckCommand).ChangeCanExecute();
+                SaveStatus = string.Empty;
             }
         }
 
@@ -153,6 +171,7 @@ namespace CCGGame.ViewModels
                 LoadDeckCards();
                 ((Command)AddCardCommand).ChangeCanExecute();
                 ((Command)SaveDeckCommand).ChangeCanExecute();
+                SaveStatus = string.Empty;
             }
         }
 
@@ -209,11 +228,39 @@ namespace CCGGame.ViewModels
 
         private void SaveDeck()
         {
-            // Aquí se podría implementar persistencia
-            // Por ahora solo validamos
             if (IsDeckValid)
             {
-                // Guardar el mazo (implementar persistencia si es necesario)
+                try
+                {
+                    var data = new
+                    {
+                        PlayerDeck.Name,
+                        Cards = PlayerDeck.Cards.Select(c => new
+                        {
+                            c.Id,
+                            c.Name,
+                            c.Description,
+                            c.Attack,
+                            c.Defense,
+                            c.Cost,
+                            c.CardType,
+                            c.Rarity
+                        }).ToList()
+                    };
+
+                    var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+                    var path = Path.Combine(FileSystem.AppDataDirectory, "deck_saved.json");
+                    File.WriteAllText(path, json);
+                    SaveStatus = $"Mazo guardado en {path}";
+                }
+                catch (Exception ex)
+                {
+                    SaveStatus = $"Error al guardar: {ex.Message}";
+                }
+            }
+            else
+            {
+                SaveStatus = "El mazo no es válido, no se puede guardar.";
             }
         }
 
@@ -223,6 +270,7 @@ namespace CCGGame.ViewModels
             LoadDeckCards();
             ((Command)AddCardCommand).ChangeCanExecute();
             ((Command)SaveDeckCommand).ChangeCanExecute();
+            SaveStatus = string.Empty;
         }
 
         private void CreateStarterDeck()
@@ -231,6 +279,26 @@ namespace CCGGame.ViewModels
             LoadDeckCards();
             ((Command)AddCardCommand).ChangeCanExecute();
             ((Command)SaveDeckCommand).ChangeCanExecute();
+            SaveStatus = "Mazo inicial generado.";
+        }
+
+        private void AutoFillDeck()
+        {
+            var rng = new Random();
+            var allCards = _cardDataService.GetAllCards().OrderBy(_ => rng.Next()).ToList();
+
+            foreach (var card in allCards)
+            {
+                if (PlayerDeck.Cards.Count >= 40)
+                    break;
+
+                PlayerDeck.AddCard(card);
+            }
+
+            LoadDeckCards();
+            ((Command)AddCardCommand).ChangeCanExecute();
+            ((Command)SaveDeckCommand).ChangeCanExecute();
+            SaveStatus = "Mazo autocompletado.";
         }
 
         public List<string> GetCardTypes()

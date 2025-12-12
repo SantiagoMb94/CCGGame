@@ -2,6 +2,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using System.Threading.Tasks;
+using System.Linq;
 using CCGGame.Models;
 using CCGGame.Services;
 
@@ -18,8 +20,12 @@ namespace CCGGame.ViewModels
         private Card? _selectedFieldCard;
         private Card? _selectedTargetCard;
         private string _gameLog = string.Empty;
+        private string _lastEvent = "Esperando inicio del duelo...";
         private bool _isGameActive;
         private bool _isPlayer1Turn;
+        private bool _isBotPlaying;
+        private bool _isGameOver;
+        private string _winnerMessage = string.Empty;
 
         public DuelViewModel(DuelService duelService, DeckService deckService, CardDataService cardDataService)
         {
@@ -41,7 +47,7 @@ namespace CCGGame.ViewModels
 
             PlayCardCommand = new Command<Card>(PlayCard, CanPlayCard);
             AttackCommand = new Command<Card>(Attack, CanAttack);
-            EndTurnCommand = new Command(EndTurn, CanEndTurn);
+            EndTurnCommand = new Command(async () => await EndTurn(), CanEndTurn);
             StartGameCommand = new Command(StartGame);
             ResetGameCommand = new Command(ResetGame);
 
@@ -124,6 +130,16 @@ namespace CCGGame.ViewModels
             }
         }
 
+        public string LastEvent
+        {
+            get => _lastEvent;
+            set
+            {
+                _lastEvent = value;
+                OnPropertyChanged();
+            }
+        }
+
         public bool IsGameActive
         {
             get => _isGameActive;
@@ -144,6 +160,26 @@ namespace CCGGame.ViewModels
                 _isPlayer1Turn = value;
                 OnPropertyChanged();
                 UpdateActivePlayer();
+            }
+        }
+
+        public bool IsGameOver
+        {
+            get => _isGameOver;
+            set
+            {
+                _isGameOver = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string WinnerMessage
+        {
+            get => _winnerMessage;
+            set
+            {
+                _winnerMessage = value;
+                OnPropertyChanged();
             }
         }
 
@@ -173,6 +209,12 @@ namespace CCGGame.ViewModels
                 _duelService.StartDuel(Player1, Player2);
                 IsPlayer1Turn = true;
                 IsGameActive = true;
+                IsGameOver = false;
+                WinnerMessage = string.Empty;
+                GameLogMessages.Clear();
+                GameLog = string.Empty;
+                LastEvent = "¡Duelo iniciado!";
+                UpdateActivePlayer();
                 UpdateUI();
             }
             catch (Exception ex)
@@ -192,6 +234,9 @@ namespace CCGGame.ViewModels
             Player2.Field.Clear();
             GameLogMessages.Clear();
             IsGameActive = false;
+            IsGameOver = false;
+            WinnerMessage = string.Empty;
+            LastEvent = "Esperando inicio del duelo...";
             UpdateUI();
         }
 
@@ -204,6 +249,7 @@ namespace CCGGame.ViewModels
             {
                 UpdateUI();
                 ((Command)PlayCardCommand).ChangeCanExecute();
+                CheckGameOverAndSetWinner();
             }
         }
 
@@ -231,16 +277,7 @@ namespace CCGGame.ViewModels
 
             SelectedTargetCard = null;
             UpdateUI();
-
-            if (_duelService.CheckGameOver(Player1, Player2))
-            {
-                var winner = _duelService.GetWinner(Player1, Player2);
-                if (winner != null)
-                {
-                    AddLogMessage($"¡{winner.Name} ha ganado el duelo!");
-                    IsGameActive = false;
-                }
-            }
+            CheckGameOverAndSetWinner();
         }
 
         private bool CanAttack(Card card)
@@ -251,14 +288,19 @@ namespace CCGGame.ViewModels
             return ActivePlayer.Field.Contains(card) && ActivePlayer.IsActive;
         }
 
-        private void EndTurn()
+        private async Task EndTurn()
         {
-            if (ActivePlayer == null || Opponent == null)
+            if (ActivePlayer == null || Opponent == null || IsGameOver)
                 return;
 
             _duelService.EndTurn(ActivePlayer, Opponent);
             IsPlayer1Turn = !IsPlayer1Turn;
             UpdateUI();
+
+            if (!IsPlayer1Turn && !_isBotPlaying && !IsGameOver)
+            {
+                await RunBotTurn();
+            }
         }
 
         private bool CanEndTurn()
@@ -270,6 +312,55 @@ namespace CCGGame.ViewModels
         {
             ActivePlayer = IsPlayer1Turn ? Player1 : Player2;
             Opponent = IsPlayer1Turn ? Player2 : Player1;
+        }
+
+        private async Task RunBotTurn()
+        {
+            _isBotPlaying = true;
+            await Task.Delay(250);
+
+            // Jugar cartas que pueda pagar (prioridad por coste y ataque)
+            var playable = Player2.Hand
+                .Where(c => c.CanPlay(Player2.Energy))
+                .OrderByDescending(c => c.Cost)
+                .ThenByDescending(c => c.Attack)
+                .ToList();
+
+            foreach (var card in playable)
+            {
+                if (IsGameOver) break;
+                _duelService.PlayCard(Player2, card, Player1);
+                UpdateUI();
+                await Task.Delay(180);
+            }
+
+            // Atacar: si el rival tiene campo, atacar a su primera carta; si no, ataque directo
+            foreach (var card in Player2.Field.ToList())
+            {
+                if (IsGameOver) break;
+                if (Player1.Field.Any())
+                {
+                    var target = Player1.Field.First();
+                    _duelService.AttackWithCard(Player2, card, Player1, target);
+                }
+                else
+                {
+                    _duelService.AttackWithCard(Player2, card, Player1);
+                }
+                UpdateUI();
+                CheckGameOverAndSetWinner();
+                if (IsGameOver) break;
+                await Task.Delay(150);
+            }
+
+            if (!IsGameOver)
+            {
+                _duelService.EndTurn(Player2, Player1);
+                IsPlayer1Turn = true;
+                UpdateUI();
+            }
+
+            _isBotPlaying = false;
         }
 
         private void UpdateUI()
@@ -303,21 +394,44 @@ namespace CCGGame.ViewModels
             OnPropertyChanged(nameof(OpponentHealth));
         }
 
+        private void CheckGameOverAndSetWinner()
+        {
+            if (_duelService.CheckGameOver(Player1, Player2))
+            {
+                var winner = _duelService.GetWinner(Player1, Player2);
+                if (winner != null)
+                {
+                    WinnerMessage = $"¡{winner.Name} ha ganado el duelo!";
+                    AddLogMessage(WinnerMessage);
+                }
+                else
+                {
+                    WinnerMessage = "Duelo terminado.";
+                }
+                IsGameActive = false;
+                IsGameOver = true;
+            }
+        }
+
         private void OnGameEvent(object? sender, string message)
         {
             AddLogMessage(message);
+            LastEvent = message;
         }
 
         private void OnPlayerDefeated(object? sender, Player player)
         {
-            AddLogMessage($"¡{player.Name} ha sido derrotado!");
+            WinnerMessage = $"¡{(player == Player1 ? Player2.Name : Player1.Name)} ha ganado el duelo!";
+            AddLogMessage(WinnerMessage);
             IsGameActive = false;
+            IsGameOver = true;
         }
 
         private void AddLogMessage(string message)
         {
             GameLogMessages.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
             GameLog = string.Join("\n", GameLogMessages);
+            LastEvent = message;
             
             // Mantener solo los últimos 50 mensajes
             if (GameLogMessages.Count > 50)

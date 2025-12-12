@@ -15,6 +15,14 @@ namespace CCGGame.Models
         
         public Card()
         {
+            Name = string.Empty;
+            Description = string.Empty;
+            CardType = string.Empty;
+            Rarity = "Common";
+            ImageUrl = string.Empty;
+            Cost = 0;
+            Attack = 0;
+            Defense = 0;
             Abilities = new List<string>();
         }
         

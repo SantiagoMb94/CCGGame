@@ -80,14 +80,40 @@ namespace CCGGame.Services
         public Deck CreateStarterDeck(CardDataService cardService)
         {
             var deck = new Deck("Mazo Inicial");
-            var allCards = cardService.GetAllCards();
             var rng = new Random();
 
-            // Agregar cartas comunes hasta llegar al mínimo
-            var commonCards = allCards.Where(c => c.Rarity == "Common").OrderBy(c => rng.Next()).Take(MinDeckSize).ToList();
-            
-            foreach (var card in commonCards)
+            var commons = cardService.GetCardsByRarity("Common");
+            var rares = cardService.GetCardsByRarity("Rare");
+            var epics = cardService.GetCardsByRarity("Epic");
+            var legendaries = cardService.GetCardsByRarity("Legendary");
+
+            // Distribución simple: 60% comunes, 25% raras, 10% épicas, 5% legendarias
+            int targetCommons = (int)(MinDeckSize * 0.6);
+            int targetRares = (int)(MinDeckSize * 0.25);
+            int targetEpics = (int)(MinDeckSize * 0.1);
+            int targetLegendaries = MinDeckSize - targetCommons - targetRares - targetEpics;
+
+            void AddRandom(List<Card> pool, int target)
             {
+                while (deck.Cards.Count < MinDeckSize && target > 0)
+                {
+                    var card = pool[rng.Next(pool.Count)];
+                    if (deck.AddCard(card))
+                    {
+                        target--;
+                    }
+                }
+            }
+
+            AddRandom(commons, targetCommons);
+            AddRandom(rares, targetRares);
+            AddRandom(epics, targetEpics);
+            AddRandom(legendaries, targetLegendaries);
+
+            // Si faltan cartas, rellenar con comunes hasta alcanzar mínimo
+            while (deck.Cards.Count < MinDeckSize)
+            {
+                var card = commons[rng.Next(commons.Count)];
                 deck.AddCard(card);
             }
 

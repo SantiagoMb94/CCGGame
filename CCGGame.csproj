@@ -19,6 +19,8 @@
 		<SingleProject>true</SingleProject>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
+		<!-- Incluir Windows App SDK en modo self-contained para evitar dependencias de runtime instalado -->
+		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
 
 		<!-- Display name -->
 		<ApplicationTitle>CCGGame</ApplicationTitle>

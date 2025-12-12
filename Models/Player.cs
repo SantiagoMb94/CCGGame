@@ -6,7 +6,7 @@ namespace CCGGame.Models
     public class Player
     {
         public string Name { get; set; }
-        public Deck PlayerDeck { get; private set; }
+        public Deck PlayerDeck { get; set; }
         public List<Card> Hand { get; set; }
         public List<Card> Field { get; set; } // Cartas en el campo de batalla
         public int Health { get; set; }

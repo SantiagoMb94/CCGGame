@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using CCGGame.Models;
 using CCGGame.Services;
 
@@ -14,16 +15,18 @@ namespace CCGGame.ViewModels
     {
         private readonly CardDataService _cardDataService;
         private readonly DeckService _deckService;
+        private readonly CardArtService _cardArtService;
         private string _searchText = string.Empty;
         private string _selectedCardType = "All";
         private string _selectedRarity = "All";
         private Card? _selectedCard;
         private string _saveStatus = string.Empty;
 
-        public DeckBuilderViewModel(CardDataService cardDataService, DeckService deckService)
+        public DeckBuilderViewModel(CardDataService cardDataService, DeckService deckService, CardArtService cardArtService)
         {
             _cardDataService = cardDataService;
             _deckService = deckService;
+            _cardArtService = cardArtService;
 
             AvailableCards = new ObservableCollection<Card>();
             DeckCards = new ObservableCollection<Card>();
@@ -31,6 +34,7 @@ namespace CCGGame.ViewModels
 
             LoadCards();
             LoadDeckCards();
+            _ = LoadImagesAsync();
 
             AddCardCommand = new Command<Card>(AddCardToDeck, CanAddCard);
             RemoveCardCommand = new Command<Card>(RemoveCardFromDeck);
@@ -147,6 +151,20 @@ namespace CCGGame.ViewModels
             OnPropertyChanged(nameof(DeckStatus));
             OnPropertyChanged(nameof(IsDeckValid));
             OnPropertyChanged(nameof(ValidationMessage));
+        }
+
+        private async Task LoadImagesAsync()
+        {
+            // Cargar imágenes por tipo de carta desde CardArtService (cacheado)
+            var all = AvailableCards.Concat(DeckCards).ToList();
+            foreach (var card in all)
+            {
+                card.ImageUrl = await _cardArtService.GetImageUrlForTypeAsync(card.CardType);
+            }
+
+            // Notificar refresco
+            OnPropertyChanged(nameof(AvailableCards));
+            OnPropertyChanged(nameof(DeckCards));
         }
 
         private void AddCardToDeck(Card card)

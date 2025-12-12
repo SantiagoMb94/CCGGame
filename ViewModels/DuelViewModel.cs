@@ -14,6 +14,7 @@ namespace CCGGame.ViewModels
         private readonly DuelService _duelService;
         private readonly DeckService _deckService;
         private readonly CardDataService _cardDataService;
+        private readonly CardArtService _cardArtService;
         private Player? _activePlayer;
         private Player? _opponent;
         private Card? _selectedHandCard;
@@ -27,11 +28,12 @@ namespace CCGGame.ViewModels
         private bool _isGameOver;
         private string _winnerMessage = string.Empty;
 
-        public DuelViewModel(DuelService duelService, DeckService deckService, CardDataService cardDataService)
+        public DuelViewModel(DuelService duelService, DeckService deckService, CardDataService cardDataService, CardArtService cardArtService)
         {
             _duelService = duelService;
             _deckService = deckService;
             _cardDataService = cardDataService;
+            _cardArtService = cardArtService;
 
             Player1 = new Player("Jugador 1", new Deck("Mazo 1"));
             Player2 = new Player("Jugador 2", new Deck("Mazo 2"));
@@ -52,6 +54,7 @@ namespace CCGGame.ViewModels
             ResetGameCommand = new Command(ResetGame);
 
             InitializeDecks();
+            _ = LoadImagesAsync();
         }
 
         public Player Player1 { get; set; }
@@ -85,6 +88,7 @@ namespace CCGGame.ViewModels
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(OpponentName));
                 OnPropertyChanged(nameof(OpponentHealth));
+                OnPropertyChanged(nameof(OpponentEnergy));
             }
         }
 
@@ -188,6 +192,7 @@ namespace CCGGame.ViewModels
         public int ActivePlayerHealth => ActivePlayer?.Health ?? 0;
         public string OpponentName => Opponent?.Name ?? "Ninguno";
         public int OpponentHealth => Opponent?.Health ?? 0;
+        public int OpponentEnergy => Opponent?.Energy ?? 0;
 
         public ICommand PlayCardCommand { get; }
         public ICommand AttackCommand { get; }
@@ -266,14 +271,9 @@ namespace CCGGame.ViewModels
             if (ActivePlayer == null || Opponent == null || card == null)
                 return;
 
-            if (SelectedTargetCard != null)
-            {
-                _duelService.AttackWithCard(ActivePlayer, card, Opponent, SelectedTargetCard);
-            }
-            else
-            {
-                _duelService.AttackWithCard(ActivePlayer, card, Opponent);
-            }
+            // Selección automática de objetivo: si hay cartas en campo rival, ataca la primera; si no, ataque directo
+            var target = SelectedTargetCard ?? Opponent.Field.FirstOrDefault();
+            _duelService.AttackWithCard(ActivePlayer, card, Opponent, target);
 
             SelectedTargetCard = null;
             UpdateUI();
@@ -363,35 +363,76 @@ namespace CCGGame.ViewModels
             _isBotPlaying = false;
         }
 
+        private async Task LoadImagesAsync()
+        {
+            var allCards = Player1Hand.Concat(Player2Hand)
+                                      .Concat(Player1Field)
+                                      .Concat(Player2Field)
+                                      .Concat(Player1.PlayerDeck.Cards)
+                                      .Concat(Player2.PlayerDeck.Cards)
+                                      .ToList();
+
+            foreach (var card in allCards)
+            {
+                card.ImageUrl = await _cardArtService.GetImageUrlForTypeAsync(card.CardType);
+            }
+
+            OnPropertyChanged(nameof(Player1Hand));
+            OnPropertyChanged(nameof(Player2Hand));
+            OnPropertyChanged(nameof(Player1Field));
+            OnPropertyChanged(nameof(Player2Field));
+        }
+
         private void UpdateUI()
         {
             Player1Hand.Clear();
             foreach (var card in Player1.Hand)
             {
+                EnsureImage(card);
                 Player1Hand.Add(card);
             }
 
             Player2Hand.Clear();
             foreach (var card in Player2.Hand)
             {
+                EnsureImage(card);
                 Player2Hand.Add(card);
             }
 
             Player1Field.Clear();
             foreach (var card in Player1.Field)
             {
+                EnsureImage(card);
                 Player1Field.Add(card);
             }
 
             Player2Field.Clear();
             foreach (var card in Player2.Field)
             {
+                EnsureImage(card);
                 Player2Field.Add(card);
             }
 
             OnPropertyChanged(nameof(ActivePlayerEnergy));
             OnPropertyChanged(nameof(ActivePlayerHealth));
             OnPropertyChanged(nameof(OpponentHealth));
+            OnPropertyChanged(nameof(OpponentEnergy));
+        }
+
+        private void EnsureImage(Card card)
+        {
+            if (string.IsNullOrWhiteSpace(card.ImageUrl))
+            {
+                card.ImageUrl = _cardArtService.GetImageUrlForTypeAsync(card.CardType).Result;
+            }
+        }
+
+        private void EnsureImage(Card card)
+        {
+            if (string.IsNullOrWhiteSpace(card.ImageUrl))
+            {
+                card.ImageUrl = _cardArtService.GetImageUrlForTypeAsync(card.CardType).Result;
+            }
         }
 
         private void CheckGameOverAndSetWinner()

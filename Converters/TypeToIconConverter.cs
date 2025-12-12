@@ -18,6 +18,13 @@ namespace CCGGame.Converters
                 "Mage" => "✨",
                 "Ranger" => "🏹",
                 "Beast" => "🐾",
+                "Dragon" => "🐉",
+                "Mech" => "🤖",
+                "Elemental" => "🪨",
+                "Demon" => "👹",
+                "Priest" => "⛪",
+                "Shaman" => "🌩️",
+                "Human" => "🛡️",
                 "Spell" => "🪄",
                 _ => "🃏"
             };

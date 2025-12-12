@@ -21,7 +21,7 @@ namespace CCGGame.Models
             PlayerDeck = deck;
             Hand = new List<Card>();
             Field = new List<Card>();
-            MaxHealth = 100;
+            MaxHealth = 30;
             Health = MaxHealth;
             MaxEnergy = 1;
             Energy = MaxEnergy;

@@ -7,7 +7,13 @@ namespace CCGGame.Services
 {
     public class DuelService
     {
-        private DeckService _deckService;
+        private readonly DeckService _deckService;
+        private readonly Random _rng = new();
+        private readonly Dictionary<Card, int> _attacksUsed = new();
+        private readonly HashSet<Card> _summoningSickness = new();
+        private readonly HashSet<Card> _divineShields = new();
+        private const int MaxFieldSize = 7;
+
         public event EventHandler<string>? GameEvent;
         public event EventHandler<Player>? PlayerDefeated;
 
@@ -32,29 +38,33 @@ namespace CCGGame.Services
             _deckService.ShuffleDeck(player1.PlayerDeck);
             _deckService.ShuffleDeck(player2.PlayerDeck);
 
-            // Inicializar jugadores
+            ResetBoard(player1);
+            ResetBoard(player2);
+
+            // Vida estilo HS
+            player1.MaxHealth = 30;
+            player2.MaxHealth = 30;
             player1.Health = player1.MaxHealth;
             player2.Health = player2.MaxHealth;
-            player1.Energy = 1;
-            player2.Energy = 0;
+
+            // Maná inicial
             player1.MaxEnergy = 1;
             player2.MaxEnergy = 1;
-            player1.Hand.Clear();
-            player2.Hand.Clear();
-            player1.Field.Clear();
-            player2.Field.Clear();
+            player1.Energy = 1;
+            player2.Energy = 0;
 
-            // Robar cartas iniciales (3 cartas)
+            // Robar cartas iniciales (3)
             for (int i = 0; i < 3; i++)
             {
                 player1.DrawCard();
                 player2.DrawCard();
             }
 
-            // El jugador 1 comienza
+            // Estado de turno
             player1.IsActive = true;
             player2.IsActive = false;
 
+            RefreshAttacks(player1);
             OnGameEvent($"¡El duelo ha comenzado! {player1.Name} vs {player2.Name}");
         }
 
@@ -77,14 +87,32 @@ namespace CCGGame.Services
 
             if (!card.CanPlay(activePlayer.Energy))
             {
-                OnGameEvent($"{activePlayer.Name} no tiene suficiente energía para jugar {card.Name}");
+                OnGameEvent($"{activePlayer.Name} no tiene suficiente maná para jugar {card.Name}");
                 return false;
             }
 
-            // Jugar la carta
+            if (activePlayer.Field.Count >= MaxFieldSize)
+            {
+                OnGameEvent("Tu campo está lleno (7). No puedes jugar más esbirros.");
+                return false;
+            }
+
             if (activePlayer.PlayCard(card))
             {
-                OnGameEvent($"{activePlayer.Name} jugó {card.Name} (Ataque: {card.Attack}, Defensa: {card.Defense})");
+                _attacksUsed[card] = 0;
+                if (!card.HasKeyword("Charge"))
+                {
+                    _summoningSickness.Add(card);
+                }
+                if (card.HasKeyword("DivineShield"))
+                {
+                    _divineShields.Add(card);
+                }
+
+                OnGameEvent($"{activePlayer.Name} jugó {card.Name} (ATQ {card.Attack} / VIDA {card.Defense})");
+
+                // Resolver Grito de Batalla
+                ResolveEffects(card, CardEffectTiming.Battlecry, activePlayer, opponent);
                 return true;
             }
 
@@ -108,33 +136,66 @@ namespace CCGGame.Services
                 return;
             }
 
-            int damage = attackingCard.Attack;
+            // Verificar invocación (no atacar si está mareado)
+            if (_summoningSickness.Contains(attackingCard) && !attackingCard.HasKeyword("Charge") && !attackingCard.HasKeyword("Rush"))
+            {
+                OnGameEvent($"{attackingCard.Name} no puede atacar este turno (nuevo en mesa)");
+                return;
+            }
+
+            // Verificar ataques disponibles (Windfury = 2)
+            var maxAttacks = attackingCard.HasKeyword("Windfury") ? 2 : 1;
+            if (_attacksUsed.TryGetValue(attackingCard, out var used) && used >= maxAttacks)
+            {
+                OnGameEvent($"{attackingCard.Name} ya atacó el máximo permitido este turno");
+                return;
+            }
+
+            // Taunt: si hay provocar enemigo, debes atacar a uno de ellos
+            var taunts = defender.Field.Where(c => c.HasKeyword("Taunt")).ToList();
+            if (taunts.Any())
+            {
+                if (defendingCard == null || !defendingCard.HasKeyword("Taunt"))
+                {
+                    defendingCard = taunts.First();
+                    OnGameEvent("Hay Provocar en mesa rival. Debes atacarlos primero.");
+                }
+            }
+
+            // Rush no puede atacar héroe en primer turno
+            if (attackingCard.HasKeyword("Rush") && _summoningSickness.Contains(attackingCard) && defendingCard == null)
+            {
+                OnGameEvent($"{attackingCard.Name} (Rush) solo puede atacar esbirros este turno.");
+                return;
+            }
 
             if (defendingCard != null && defender.Field.Contains(defendingCard))
             {
-                // Ataque contra otra carta
                 OnGameEvent($"{attackingCard.Name} ataca a {defendingCard.Name}");
+                bool defenderDestroyed = ApplyDamageToCard(defendingCard, attackingCard.Attack, defender);
+                bool attackerDestroyed = ApplyDamageToCard(attackingCard, defendingCard.Attack, attacker);
 
-                defendingCard.Defense -= attackingCard.Attack;
-                attackingCard.Defense -= defendingCard.Attack;
-
-                if (defendingCard.Defense <= 0)
+                if (defenderDestroyed)
                 {
-                    defender.Field.Remove(defendingCard);
-                    OnGameEvent($"{defendingCard.Name} fue destruida");
+                    HandleDeath(defender, defendingCard, attacker);
                 }
 
-                if (attackingCard.Defense <= 0)
+                if (attackerDestroyed)
                 {
-                    attacker.Field.Remove(attackingCard);
-                    OnGameEvent($"{attackingCard.Name} fue destruida");
+                    HandleDeath(attacker, attackingCard, defender);
                 }
             }
             else
             {
-                // Ataque directo al jugador
-                defender.TakeDamage(damage);
-                OnGameEvent($"{attackingCard.Name} ataca directamente a {defender.Name} causando {damage} de daño");
+                // Ataque directo al héroe (si no hay taunt)
+                if (taunts.Any())
+                {
+                    OnGameEvent("No puedes atacar al héroe mientras haya esbirros con Provocar.");
+                    return;
+                }
+
+                defender.TakeDamage(attackingCard.Attack);
+                OnGameEvent($"{attackingCard.Name} ataca directamente a {defender.Name} causando {attackingCard.Attack} de daño");
 
                 if (defender.IsDefeated())
                 {
@@ -142,6 +203,8 @@ namespace CCGGame.Services
                     PlayerDefeated?.Invoke(this, defender);
                 }
             }
+
+            _attacksUsed[attackingCard] = (_attacksUsed.TryGetValue(attackingCard, out var count) ? count : 0) + 1;
         }
 
         public void EndTurn(Player currentPlayer, Player nextPlayer)
@@ -151,6 +214,7 @@ namespace CCGGame.Services
 
             currentPlayer.EndTurn();
             nextPlayer.StartTurn();
+            RefreshAttacks(nextPlayer);
 
             OnGameEvent($"Turno de {currentPlayer.Name} terminado. Ahora es el turno de {nextPlayer.Name}");
         }
@@ -185,6 +249,93 @@ namespace CCGGame.Services
                 return player1;
 
             return null;
+        }
+
+        private bool ApplyDamageToCard(Card target, int damage, Player owner)
+        {
+            if (_divineShields.Contains(target))
+            {
+                _divineShields.Remove(target);
+                OnGameEvent($"{target.Name} pierde Escudo Divino (sin daño)");
+                return false;
+            }
+
+            target.Defense -= damage;
+            return target.Defense <= 0;
+        }
+
+        private void HandleDeath(Player owner, Card deadCard, Player opponent)
+        {
+            if (owner.Field.Contains(deadCard))
+            {
+                owner.Field.Remove(deadCard);
+            }
+
+            _attacksUsed.Remove(deadCard);
+            _summoningSickness.Remove(deadCard);
+            _divineShields.Remove(deadCard);
+
+            OnGameEvent($"{deadCard.Name} fue destruido");
+            ResolveEffects(deadCard, CardEffectTiming.Deathrattle, owner, opponent);
+        }
+
+        private void ResolveEffects(Card card, CardEffectTiming timing, Player owner, Player opponent)
+        {
+            foreach (var effect in card.GetEffects(timing))
+            {
+                switch (effect.EffectType)
+                {
+                    case CardEffectType.DealDamageEnemyHero:
+                        opponent.TakeDamage(effect.Value);
+                        OnGameEvent($"{card.Name}: {effect.Description ?? $"Hace {effect.Value} de daño al héroe enemigo"}");
+                        if (opponent.IsDefeated())
+                        {
+                            PlayerDefeated?.Invoke(this, opponent);
+                        }
+                        break;
+                    case CardEffectType.DealDamageRandomEnemyMinion:
+                        if (opponent.Field.Any())
+                        {
+                            var target = opponent.Field[_rng.Next(opponent.Field.Count)];
+                            bool destroyed = ApplyDamageToCard(target, effect.Value, opponent);
+                            OnGameEvent($"{card.Name}: {effect.Description ?? $"Hace {effect.Value} de daño a {target.Name}"}");
+                            if (destroyed)
+                            {
+                                HandleDeath(opponent, target, owner);
+                            }
+                        }
+                        break;
+                    case CardEffectType.DrawCards:
+                        for (int i = 0; i < effect.Value; i++)
+                        {
+                            owner.DrawCard();
+                        }
+                        OnGameEvent($"{card.Name}: robas {effect.Value} carta(s)");
+                        break;
+                    case CardEffectType.HealFriendlyHero:
+                        owner.Heal(effect.Value);
+                        OnGameEvent($"{card.Name}: curas {effect.Value} a tu héroe");
+                        break;
+                }
+            }
+        }
+
+        private void RefreshAttacks(Player player)
+        {
+            foreach (var card in player.Field.ToList())
+            {
+                _attacksUsed[card] = 0;
+                _summoningSickness.Remove(card);
+            }
+        }
+
+        private void ResetBoard(Player player)
+        {
+            player.Hand.Clear();
+            player.Field.Clear();
+            _attacksUsed.Clear();
+            _summoningSickness.Clear();
+            _divineShields.Clear();
         }
 
         protected virtual void OnGameEvent(string message)

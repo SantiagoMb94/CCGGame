@@ -19,6 +19,7 @@ public static class MauiProgram
 			});
 
 		// Registrar servicios
+		builder.Services.AddSingleton<CardArtService>();
 		builder.Services.AddSingleton<CardDataService>();
 		builder.Services.AddSingleton<DeckService>();
 		builder.Services.AddTransient<DuelService>(sp => 
@@ -36,14 +37,16 @@ public static class MauiProgram
 		{
 			var cardDataService = sp.GetRequiredService<CardDataService>();
 			var deckService = sp.GetRequiredService<DeckService>();
-			return new DeckBuilderViewModel(cardDataService, deckService);
+			var artService = sp.GetRequiredService<CardArtService>();
+			return new DeckBuilderViewModel(cardDataService, deckService, artService);
 		});
 		builder.Services.AddTransient<DuelViewModel>(sp =>
 		{
 			var duelService = sp.GetRequiredService<DuelService>();
 			var deckService = sp.GetRequiredService<DeckService>();
 			var cardDataService = sp.GetRequiredService<CardDataService>();
-			return new DuelViewModel(duelService, deckService, cardDataService);
+			var artService = sp.GetRequiredService<CardArtService>();
+			return new DuelViewModel(duelService, deckService, cardDataService, artService);
 		});
 
 		// Registrar Views

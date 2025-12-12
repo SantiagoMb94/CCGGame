@@ -110,6 +110,7 @@
                                        Margin="0,0,0,10">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <VerticalStackLayout Grid.Column="0" Spacing="5">
+                                            <Image Source="{Binding ImageUrl}" HeightRequest="60" Aspect="AspectFill" />
                                             <Label Text="{Binding Name}" 
                                                    FontSize="14" 
                                                    FontAttributes="Bold" />
@@ -175,6 +176,7 @@
                                        Margin="0,0,0,10">
                                     <Grid ColumnDefinitions="*,Auto">
                                         <VerticalStackLayout Grid.Column="0" Spacing="5">
+                                            <Image Source="{Binding ImageUrl}" HeightRequest="50" Aspect="AspectFill" />
                                             <Label Text="{Binding Name}" 
                                                    FontSize="14" 
                                                    FontAttributes="Bold" />

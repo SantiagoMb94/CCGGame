@@ -427,14 +427,6 @@ namespace CCGGame.ViewModels
             }
         }
 
-        private void EnsureImage(Card card)
-        {
-            if (string.IsNullOrWhiteSpace(card.ImageUrl))
-            {
-                card.ImageUrl = _cardArtService.GetImageUrlForTypeAsync(card.CardType).Result;
-            }
-        }
-
         private void CheckGameOverAndSetWinner()
         {
             if (_duelService.CheckGameOver(Player1, Player2))
